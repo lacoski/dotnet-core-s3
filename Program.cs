@@ -18,7 +18,7 @@ namespace demo
         {
             // Task.Run(MainAsync).GetAwaiter().GetResult();
 
-            Task.Run(CreateBucketAsync).GetAwaiter().GetResult();
+            Task.Run(DeleteBucketAsync).GetAwaiter().GetResult();
         }
 
         private static async Task MainAsync()
@@ -65,7 +65,7 @@ namespace demo
         }
 
 
-        private const string bucketName = "Demo123123123";
+        private const string bucketName = "new-bucket-82b006cc";
 
         private static async Task CreateBucketAsync()
         {
@@ -88,6 +88,40 @@ namespace demo
                 PutBucketResponse putBucketResponse = await amazonS3Client.PutBucketAsync(putBucketRequest);
 
                 Console.Out.WriteLine("Status code = '" + putBucketResponse.HttpStatusCode);
+
+            }
+            catch (AmazonS3Exception e)
+            {
+                Console.WriteLine("Error encountered on server. Message:'{0}' when writing an object", e.Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Unknown encountered on server. Message:'{0}' when writing an object", e.Message);
+            }
+
+        }
+
+        private static async Task DeleteBucketAsync()
+        {
+            var config = new AmazonS3Config
+            {
+                RegionEndpoint = RegionEndpoint.USEast1, // MUST set this before setting ServiceURL and it should match the `MINIO_REGION` environment variable.
+                ServiceURL = endpointURL, // replace http://localhost:9000 with URL of your MinIO server
+                ForcePathStyle = true // MUST be true to work correctly with MinIO server
+            };
+            var amazonS3Client = new AmazonS3Client(accessKey, secretKey, config);
+
+            try
+            {
+                var deleteBucketRequest = new DeleteBucketRequest
+                {
+                    BucketName = bucketName,
+                    UseClientRegion = true
+                };
+
+                DeleteBucketResponse deleteBucketResponse = await amazonS3Client.DeleteBucketAsync(bucketName);
+
+                Console.Out.WriteLine("Status code = '" + deleteBucketResponse.HttpStatusCode);
 
             }
             catch (AmazonS3Exception e)
